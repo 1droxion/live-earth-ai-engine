@@ -1,0 +1,19 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.6",
+  "Category": "Simulation",
+  "Description": "Photoreal Live Earth observer client backed by the persistent Live Earth world service.",
+  "Modules": [
+    {
+      "Name": "LiveEarthRenderer",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "PixelStreaming2",
+      "Enabled": true
+    }
+  ]
+}
