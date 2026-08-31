@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = 'https://natqbwulzzwirbksrvje.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rqWj3rTG0JIy8kNfpkZPqQ_zbI6K4gt';
 const API_URL = `${SUPABASE_URL}/functions/v1/factory-api`;
+const PREVIEW_URL = `${SUPABASE_URL}/functions/v1/factory-preview`;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function api(key, action, payload = {}) {
@@ -111,7 +112,24 @@ export default function Page() {
     try {
       await api(key, 'queueProject', { projectId: selectedProject.id });
       await refresh();
-      setMessage('Queued. The render worker is the next piece to connect.');
+      setMessage('Queued. The render worker will pick it up automatically.');
+    } catch (err) { setMessage(err.message); }
+    finally { setBusy(false); }
+  }
+
+  async function watchFinalVideo() {
+    if (!selectedProject) return;
+    setBusy(true); setMessage('Opening final video...');
+    try {
+      const res = await fetch(PREVIEW_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-factory-key': key },
+        body: JSON.stringify({ projectId: selectedProject.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Could not open final video');
+      window.open(data.url, '_blank', 'noopener,noreferrer');
+      setMessage('Final video opened in a new tab.');
     } catch (err) { setMessage(err.message); }
     finally { setBusy(false); }
   }
@@ -154,11 +172,11 @@ export default function Page() {
       <div className="grid three">
         <div className="uploadBox"><h3>1. Source Video</h3><p>{selectedProject.source_path ? 'Uploaded ✓' : 'Upload MP4/MOV'}</p><label className="fileBtn primary">Upload Source<input type="file" accept="video/mp4,video/quicktime" onChange={(e)=>uploadProjectFile(e.target.files?.[0], 'source')}/></label></div>
         <div className="uploadBox"><h3>2. Reaction</h3><p>{selectedProject.reaction_label ? `Factory: ${selectedProject.reaction_label} ✓` : selectedProject.reaction_path ? 'Uploaded ✓' : 'Use Factory or upload'}</p><div className="stack"><button className="secondary" onClick={useFactory} disabled={busy}>Use Reaction Factory</button><label className="fileBtn">Upload Reaction<input type="file" accept="video/mp4,video/quicktime" onChange={(e)=>uploadProjectFile(e.target.files?.[0], 'reaction')}/></label></div></div>
-        <div className="uploadBox"><h3>3. Create Video</h3><p>Status: {selectedProject.status}</p><button disabled={busy || !selectedProject.source_path || !selectedProject.reaction_path} onClick={queueProject}>Queue Full Pipeline</button></div>
+        <div className="uploadBox"><h3>3. Create Video</h3><p>Status: {selectedProject.status}</p>{selectedProject.render_path ? <button onClick={watchFinalVideo} disabled={busy}>Watch Final Video</button> : <button disabled={busy || !selectedProject.source_path || !selectedProject.reaction_path} onClick={queueProject}>Queue Full Pipeline</button>}{selectedProject.final_duration_seconds && <p>Final: {Number(selectedProject.final_duration_seconds).toFixed(1)} sec</p>}</div>
       </div>
       {selectedProject.error && <p className="msg error">{selectedProject.error}</p>}
     </section>}
 
-    <section className="card pipeline"><h2>Pipeline</h2><div className="steps">{['Upload','Normalize','Transcribe','Analyze','Edit','Render','Captions','Thumbnail','Metadata','YouTube'].map((s,i)=><span key={s}>{i+1}. {s}</span>)}</div><p>The dashboard, private storage, Reaction Factory library and job queue are connected. The FFmpeg render worker is next.</p></section>
+    <section className="card pipeline"><h2>Pipeline</h2><div className="steps">{['Upload','Normalize','Transcribe','Analyze','Edit','Render','Captions','Thumbnail','Metadata','YouTube'].map((s,i)=><span key={s}>{i+1}. {s}</span>)}</div><p>The dashboard, private storage, Reaction Factory library, queue and FFmpeg render worker are connected.</p></section>
   </main>;
 }
