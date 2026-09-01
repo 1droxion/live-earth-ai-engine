@@ -1,0 +1,13 @@
+{
+  "name": "live-earth-genesis-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node genesis.mjs",
+    "simulate": "node genesis.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
