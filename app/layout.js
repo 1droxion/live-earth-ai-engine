@@ -1,3 +1,9 @@
-export const metadata = { title: 'YouTube Factory', description: 'Funny reaction long-video factory' };
+export const metadata = {
+  title: 'Droxion Family Shield',
+  description: 'Pre-launch family scam protection validation page.',
+};
 import './styles.css';
-export default function RootLayout({ children }) { return <html lang="en"><body>{children}</body></html>; }
+
+export default function RootLayout({ children }) {
+  return <html lang="en"><body>{children}</body></html>;
+}
